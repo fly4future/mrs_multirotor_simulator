@@ -192,7 +192,8 @@ UavSystemRos::UavSystemRos(const UavSystemRos_CommonHandlers_t common_handlers) 
   }
 
   if (pub_odom_enabled) {
-    ph_odom_ = std::make_shared<mrs_lib::PublisherHandler<nav_msgs::msg::Odometry>>(node_, "~/" + _uav_name_ + "/odom");
+    ph_odom_      = std::make_shared<mrs_lib::PublisherHandler<nav_msgs::msg::Odometry>>(node_, "~/" + _uav_name_ + "/odom");
+    ph_on_ground_ = std::make_shared<mrs_lib::PublisherHandler<std_msgs::msg::Bool>>(node_, "~/" + _uav_name_ + "/on_ground");
   }
 
   if (pub_rangefinder_enabled) {
@@ -458,6 +459,8 @@ void UavSystemRos::makeStep(const double dt, const double time_stamp, const std:
 
   publishOdometry(state);
 
+  publishOnGround(state);
+
   publishIMU(state);
 
   publishRangefinder(state);
@@ -567,6 +570,21 @@ void UavSystemRos::publishOdometry(const MultirotorModel::State &state) {
   odom.twist.twist.angular.z = state.omega(2);
 
   ph_odom_->publish(odom);
+}
+
+//}
+
+/* publishOnGround() //{ */
+
+void UavSystemRos::publishOnGround(const MultirotorModel::State &state) {
+
+  if (!ph_on_ground_) {
+    return;
+  }
+
+  std_msgs::msg::Bool msg;
+  msg.data = state.on_ground;
+  ph_on_ground_->publish(msg);
 }
 
 //}
